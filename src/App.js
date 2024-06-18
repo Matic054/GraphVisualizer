@@ -1,25 +1,25 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from 'react';
+import FileUpload from './components/FileUpload';
+import GraphVisualizer from './components/GraphVisualizer';
 
-function App() {
+const App = () => {
+  const [vertices, setVertices] = useState([]);
+  const [edges, setEdges] = useState([]);
+
+  const handleFileParsed = (parsedVertices, parsedEdges) => {
+    console.log('Hello');
+    setVertices(parsedVertices);
+    setEdges(parsedEdges);
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <h1>Graph Visualizer</h1>
+      <FileUpload onFileParsed={handleFileParsed} />
+      <GraphVisualizer vertices={vertices} edges={edges} />
     </div>
   );
-}
+};
 
 export default App;
+
