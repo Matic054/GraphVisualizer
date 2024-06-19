@@ -4,6 +4,9 @@ import * as d3 from 'd3';
 const GraphVisualizer = ({ initialVertices, initialEdges }) => {
   const [vertices, setVertices] = useState(initialVertices);
   const [edges, setEdges] = useState(initialEdges);
+  const [sourceNode, setSourceNode] = useState('');
+  const [targetNode, setTargetNode] = useState('');
+  const [edgeWeight, setEdgeWeight] = useState(1);
 
   const svgRef = useRef();
   const simulationRef = useRef();
@@ -14,9 +17,11 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
   }, [initialVertices, initialEdges]);
 
   useEffect(() => {
-    if (!vertices.length || !edges.length) {
+    if (!vertices.length) {
       return;
     }
+
+    console.log("The edges:", edges);
 
     const svg = d3.select(svgRef.current);
     svg.selectAll('*').remove();
@@ -31,15 +36,15 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
       .attr('viewBox', '0 -5 10 10')
       .attr('refX', 15)
       .attr('refY', 0)
-      .attr('markerWidth', 6)
-      .attr('markerHeight', 6)
+      .attr('markerWidth', 12)
+      .attr('markerHeight', 12)
       .attr('orient', 'auto')
       .append('path')
       .attr('d', 'M0,-5L10,0L0,5')
       .attr('fill', '#999');
 
     simulationRef.current = d3.forceSimulation(vertices)
-      .force('link', d3.forceLink(edges).id(d => d.id).distance(200))
+      .force('link', d3.forceLink(edges).id(d => d.id).distance(150))
       .force('charge', d3.forceManyBody().strength(-500))
       .force('center', d3.forceCenter(width / 2, height / 2));
 
@@ -49,7 +54,7 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
       .enter().append('line')
       .attr('stroke', '#999')
       .attr('stroke-opacity', 0.6)
-      .attr('stroke-width', 1) // Setting stroke width to a constant value
+      .attr('stroke-width', 1)
       .attr('marker-end', d => d.directed ? 'url(#end)' : null);
 
     const edgeLabels = svg.append('g')
@@ -126,15 +131,72 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
     setVertices(newVertices);
   };
 
+  const handleAddEdge = () => {
+    // Create the new edge
+    const newEdge = { source: sourceNode, target: targetNode, weight: edgeWeight, directed: true };
+  
+    // Check if the opposite edge exists
+    const oppositeEdgeIndex = edges.findIndex(edge => 
+      edge.source.id === targetNode && edge.target.id === sourceNode && edge.weight === edgeWeight
+    );
+  
+    console.log('Opposite edge index:', oppositeEdgeIndex); // Log the index of the opposite edge if found
+    console.log('Current edges:', edges); // Log the current edges
+    console.log('New edge:', newEdge); // Log the new edge being added
+  
+    if (oppositeEdgeIndex !== -1) {
+      // If the opposite edge exists, update both to be undirected
+      const updatedEdges = edges.map((edge, index) => {
+        if (index === oppositeEdgeIndex || (edge.source.id === sourceNode && edge.target.id === targetNode && edge.weight === edgeWeight)) {
+          return { ...edge, directed: false };
+        }
+        return edge;
+      });
+      setEdges(updatedEdges);
+    } else {
+      // If the opposite edge does not exist, just add the new edge
+      setEdges([...edges, newEdge]);
+    }
+  };  
+  
+
   return (
     <div>
       <svg ref={svgRef} width="800" height="600"></svg>
-      <button onClick={addNode}>Add Node</button>
+      <div>
+        <button onClick={addNode}>Add Node</button>
+      </div>
+      <div>
+        <label>
+          Source Node:
+          <select value={sourceNode} onChange={e => setSourceNode(e.target.value)}>
+            <option value="">Select Source</option>
+            {vertices.map(vertex => (
+              <option key={vertex.id} value={vertex.id}>{vertex.id}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Target Node:
+          <select value={targetNode} onChange={e => setTargetNode(e.target.value)} disabled={!sourceNode}>
+            <option value="">Select Target</option>
+            {vertices.filter(vertex => vertex.id !== sourceNode).map(vertex => (
+              <option key={vertex.id} value={vertex.id}>{vertex.id}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Weight:
+          <input type="number" value={edgeWeight} onChange={e => setEdgeWeight(parseFloat(e.target.value))} />
+        </label>
+        <button onClick={handleAddEdge} disabled={!sourceNode || !targetNode}>Add Edge</button>
+      </div>
     </div>
   );
 };
 
 export default GraphVisualizer;
+
 
 
 
