@@ -1,5 +1,3 @@
-// src/components/FileUpload.js
-
 import React, { useState } from 'react';
 
 const FileUpload = ({ onFileParsed }) => {
@@ -9,20 +7,16 @@ const FileUpload = ({ onFileParsed }) => {
     const content = event.target.result;
     setFileContent(content);
     const { vertices, edges } = parseGraphData(content);
-    console.log('Parsed vertices:', vertices); // Logging parsed vertices
-    console.log('Parsed edges:', edges);
     onFileParsed(vertices, edges);
   };
 
   const handleFileChosen = (file) => {
-    console.log('File chosen:', file);
     const fileReader = new FileReader();
     fileReader.onloadend = handleFileRead;
     fileReader.readAsText(file);
   };
 
   const parseGraphData = (data) => {
-    console.log('Parsing graph data'); // Logging parsing start
     const vertexPattern = /V=\{([^}]+)\}/;
     const edgePattern = /E=\{([^}]+)\}/;
   
@@ -37,11 +31,22 @@ const FileUpload = ({ onFileParsed }) => {
         })
       : [];
   
-    console.log('Parsed vertices in function:', vertices); // Logging parsed vertices inside function
-    console.log('Parsed edges in function:', edges); // Logging parsed edges inside function
+    // Combine edges to make them undirected if both directions exist
+    const undirectedEdges = [];
+
+    edges.forEach(edge => {
+      const { source, target, weight } = edge;
+      if (edges.some(e => e.source === target && e.target === source && e.weight === weight)){
+        undirectedEdges.push({ source, target, weight, directed: false });
+      } else {
+        undirectedEdges.push({ source, target, weight, directed: true });
+      }
+      
+    });
   
-    return { vertices, edges };
+    return { vertices, edges: undirectedEdges };
   };
+  
   
   return (
     <div>
@@ -52,4 +57,5 @@ const FileUpload = ({ onFileParsed }) => {
 };
 
 export default FileUpload;
+
 

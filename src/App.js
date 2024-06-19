@@ -7,7 +7,6 @@ const App = () => {
   const [edges, setEdges] = useState([]);
 
   const handleFileParsed = (parsedVertices, parsedEdges) => {
-    console.log('Hello');
     setVertices(parsedVertices);
     setEdges(parsedEdges);
   };
@@ -16,10 +15,11 @@ const App = () => {
     <div>
       <h1>Graph Visualizer</h1>
       <FileUpload onFileParsed={handleFileParsed} />
-      <GraphVisualizer vertices={vertices} edges={edges} />
+      <GraphVisualizer initialVertices={vertices} initialEdges={edges} />
     </div>
   );
 };
 
 export default App;
+
 
