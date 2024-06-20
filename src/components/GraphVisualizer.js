@@ -7,6 +7,8 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
   const [sourceNode, setSourceNode] = useState('');
   const [targetNode, setTargetNode] = useState('');
   const [edgeWeight, setEdgeWeight] = useState(1);
+  const [selectedNodeToDelete, setSelectedNodeToDelete] = useState('');
+  const [selectedEdgeToDelete, setSelectedEdgeToDelete] = useState('');
 
   const svgRef = useRef();
   const simulationRef = useRef();
@@ -158,7 +160,19 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
       setEdges([...edges, newEdge]);
     }
   };  
-  
+
+  const deleteNode = () => {
+    const newVertices = vertices.filter(vertex => vertex.id !== selectedNodeToDelete);
+    const newEdges = edges.filter(edge => edge.source.id !== selectedNodeToDelete && edge.target.id !== selectedNodeToDelete);
+    setVertices(newVertices);
+    setEdges(newEdges);
+  };
+
+  const deleteEdge = () => {
+    const [source, target] = selectedEdgeToDelete.split('-');
+    const newEdges = edges.filter(edge => !(edge.source.id === source && edge.target.id === target));
+    setEdges(newEdges);
+  };
 
   return (
     <div>
@@ -190,6 +204,32 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
           <input type="number" value={edgeWeight} onChange={e => setEdgeWeight(parseFloat(e.target.value))} />
         </label>
         <button onClick={handleAddEdge} disabled={!sourceNode || !targetNode}>Add Edge</button>
+      </div>
+      <div>
+        <label>
+          Delete Node:
+          <select value={selectedNodeToDelete} onChange={e => setSelectedNodeToDelete(e.target.value)}>
+            <option value="">Select Node to Delete</option>
+            {vertices.map(vertex => (
+              <option key={vertex.id} value={vertex.id}>{vertex.id}</option>
+            ))}
+          </select>
+        </label>
+        <button onClick={deleteNode}>Delete Node</button>
+      </div>
+      <div>
+        <label>
+          Delete Edge:
+          <select value={selectedEdgeToDelete} onChange={e => setSelectedEdgeToDelete(e.target.value)}>
+            <option value="">Select Edge to Delete</option>
+            {edges.map(edge => (
+              <option key={`${edge.source.id}-${edge.target.id}`} value={`${edge.source.id}-${edge.target.id}`}>
+                {`${edge.source.id} -> ${edge.target.id}`}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button onClick={deleteEdge}>Delete Edge</button>
       </div>
     </div>
   );
