@@ -9,6 +9,8 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
   const [edgeWeight, setEdgeWeight] = useState(1);
   const [selectedNodeToDelete, setSelectedNodeToDelete] = useState('');
   const [selectedEdgeToDelete, setSelectedEdgeToDelete] = useState('');
+  const [linkDistance, setLinkDistance] = useState(150);
+  const [chargeStrength, setChargeStrength] = useState(-500);
 
   const svgRef = useRef();
   const simulationRef = useRef();
@@ -22,8 +24,6 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
     if (!vertices.length) {
       return;
     }
-
-    console.log("The edges:", edges);
 
     const svg = d3.select(svgRef.current);
     svg.selectAll('*').remove();
@@ -46,8 +46,8 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
       .attr('fill', '#999');
 
     simulationRef.current = d3.forceSimulation(vertices)
-      .force('link', d3.forceLink(edges).id(d => d.id).distance(150))
-      .force('charge', d3.forceManyBody().strength(-500))
+      .force('link', d3.forceLink(edges).id(d => d.id).distance(linkDistance))
+      .force('charge', d3.forceManyBody().strength(chargeStrength))
       .force('center', d3.forceCenter(width / 2, height / 2));
 
     const link = svg.append('g')
@@ -125,7 +125,7 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
     }
 
     return () => simulationRef.current.stop();
-  }, [vertices, edges]);
+  }, [vertices, edges, linkDistance, chargeStrength]);
 
   const addNode = () => {
     const newNodeId = `v${vertices.length + 1}`;
@@ -134,20 +134,13 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
   };
 
   const handleAddEdge = () => {
-    // Create the new edge
     const newEdge = { source: sourceNode, target: targetNode, weight: edgeWeight, directed: true };
-  
-    // Check if the opposite edge exists
+
     const oppositeEdgeIndex = edges.findIndex(edge => 
       edge.source.id === targetNode && edge.target.id === sourceNode && edge.weight === edgeWeight
     );
-  
-    console.log('Opposite edge index:', oppositeEdgeIndex); // Log the index of the opposite edge if found
-    console.log('Current edges:', edges); // Log the current edges
-    console.log('New edge:', newEdge); // Log the new edge being added
-  
+
     if (oppositeEdgeIndex !== -1) {
-      // If the opposite edge exists, update both to be undirected
       const updatedEdges = edges.map((edge, index) => {
         if (index === oppositeEdgeIndex || (edge.source.id === sourceNode && edge.target.id === targetNode && edge.weight === edgeWeight)) {
           return { ...edge, directed: false };
@@ -156,10 +149,9 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
       });
       setEdges(updatedEdges);
     } else {
-      // If the opposite edge does not exist, just add the new edge
       setEdges([...edges, newEdge]);
     }
-  };  
+  };
 
   const deleteNode = () => {
     const newVertices = vertices.filter(vertex => vertex.id !== selectedNodeToDelete);
@@ -203,7 +195,7 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
           Weight:
           <input type="number" value={edgeWeight} onChange={e => setEdgeWeight(parseFloat(e.target.value))} />
         </label>
-        <button onClick={handleAddEdge} disabled={!sourceNode || !targetNode}>Add Edge</button>
+        <button onClick={handleAddEdge}>Add Edge</button>
       </div>
       <div>
         <label>
@@ -231,11 +223,36 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
         </label>
         <button onClick={deleteEdge}>Delete Edge</button>
       </div>
+      <div>
+        <label>
+          Link Distance: {linkDistance}
+          <input
+            type="range"
+            min="10"
+            max="300"
+            value={linkDistance}
+            onChange={e => setLinkDistance(parseFloat(e.target.value))}
+          />
+        </label>
+      </div>
+      <div>
+        <label>
+          Charge Strength: {chargeStrength}
+          <input
+            type="range"
+            min="-1000"
+            max="0"
+            value={chargeStrength}
+            onChange={e => setChargeStrength(parseFloat(e.target.value))}
+          />
+        </label>
+      </div>
     </div>
   );
 };
 
 export default GraphVisualizer;
+
 
 
 
