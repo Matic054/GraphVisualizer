@@ -189,40 +189,44 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
 
   const visualizeDFS = (startNode) => {
     const visited = new Set();
-    const stack = [startNode];
     const dfsTraversal = [];
-
-    while (stack.length > 0) {
-      const node = stack.pop();
-      if (!visited.has(node)) {
-        visited.add(node);
-        dfsTraversal.push(node);
-        const neighbors = edges
-          .filter(edge => edge.source.id === node)
-          .map(edge => edge.target.id);
-        for (const neighbor of neighbors) {
-          stack.push(neighbor);
+    const dfsEdges = [];
+  
+    const dfs = (node) => {
+      visited.add(node);
+      dfsTraversal.push(node);
+      const neighbors = edges
+        .filter(edge => edge.source.id === node)
+        .map(edge => ({ target: edge.target.id, sourceEdge: edge }));
+      for (const neighbor of neighbors) {
+        if (!visited.has(neighbor.target)) {
+          dfsEdges.push(neighbor.sourceEdge);
+          dfs(neighbor.target);
         }
       }
-    }
-
+    };
+  
+    dfs(startNode);
+  
     dfsTraversal.forEach((node, index) => {
       setTimeout(() => {
         d3.selectAll('circle').filter(d => d.id === node).attr('fill', 'red');
-        if (index > 0) {
-          const prevNode = dfsTraversal[index - 1];
-          d3.selectAll('line')
-            .filter(d => (d.source.id === prevNode && d.target.id === node) || (d.source.id === node && d.target.id === prevNode))
-            .attr('stroke', 'red');
-        }
-      }, index * 650);
+      }, index * 1000);
     });
-
+  
+    dfsEdges.forEach((edge, index) => {
+      setTimeout(() => {
+        d3.selectAll('line')
+          .filter(d => (d.source.id === edge.source.id && d.target.id === edge.target.id))
+          .attr('stroke', 'red');
+      }, index * 1000 + 300); // Offset to ensure edges are colored after nodes
+    });
+  
     setTimeout(() => {
       d3.selectAll('circle').attr('fill', '#69b3a2');
       d3.selectAll('line').attr('stroke', '#999');
-    }, dfsTraversal.length * 650 + 1000);
-  };
+    }, dfsTraversal.length * 1000 + 1000);
+  };  
 
   const visualizeBFS = (startNode) => {
     const visited = new Set();
@@ -236,15 +240,16 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
         visited.add(node);
         bfsTraversal.push(node);
         const neighbors = edges
-          .filter(edge => edge.source.id === node && !visited.has(edge.target.id))
+          .filter(edge => (edge.source.id === node && !visited.has(edge.target.id)))
           .map(edge => ({ target: edge.target.id, sourceEdge: edge }));
         for (const neighbor of neighbors) {
-            queue.push(neighbor.target);
-            bfsEdges.push(neighbor.sourceEdge);
+          if (!queue.some(n => n === neighbor.target)) bfsEdges.push(neighbor.sourceEdge);
+          queue.push(neighbor.target);
         }
       }
     }
 
+    console.log("Visited", visited);
     console.log("Vertices", bfsTraversal);
     console.log("Edges", bfsEdges);
   
@@ -265,7 +270,7 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
     setTimeout(() => {
       d3.selectAll('circle').attr('fill', '#69b3a2');
       d3.selectAll('line').attr('stroke', '#999');
-    }, bfsTraversal.length * 2 * 1000 + 1000);
+    }, bfsTraversal.length * 1000 + 1000);
   };  
 
   return (
