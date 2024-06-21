@@ -12,6 +12,9 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
   const [linkDistance, setLinkDistance] = useState(150);
   const [chargeStrength, setChargeStrength] = useState(-500);
 
+  const [selectedAlgorithm, setSelectedAlgorithm] = useState('');
+  const [algorithmParams, setAlgorithmParams] = useState({});
+
   const svgRef = useRef();
   const simulationRef = useRef();
 
@@ -166,9 +169,108 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
     setEdges(newEdges);
   };
 
+  const handleAlgorithmChange = (e) => {
+    setSelectedAlgorithm(e.target.value);
+    setAlgorithmParams({});
+  };
+
+  const handleAlgorithmParamsChange = (e) => {
+    const { name, value } = e.target;
+    setAlgorithmParams(prevParams => ({ ...prevParams, [name]: value }));
+  };
+
+  const visualizeAlgorithm = () => {
+    if (selectedAlgorithm === 'DFS') {
+      visualizeDFS(algorithmParams.startNode);
+    } else if (selectedAlgorithm === 'BFS') {
+      visualizeBFS(algorithmParams.startNode);
+    }
+  };
+
+  const visualizeDFS = (startNode) => {
+    const visited = new Set();
+    const stack = [startNode];
+    const dfsTraversal = [];
+
+    while (stack.length > 0) {
+      const node = stack.pop();
+      if (!visited.has(node)) {
+        visited.add(node);
+        dfsTraversal.push(node);
+        const neighbors = edges
+          .filter(edge => edge.source.id === node)
+          .map(edge => edge.target.id);
+        for (const neighbor of neighbors) {
+          stack.push(neighbor);
+        }
+      }
+    }
+
+    dfsTraversal.forEach((node, index) => {
+      setTimeout(() => {
+        d3.selectAll('circle').filter(d => d.id === node).attr('fill', 'red');
+        if (index > 0) {
+          const prevNode = dfsTraversal[index - 1];
+          d3.selectAll('line')
+            .filter(d => (d.source.id === prevNode && d.target.id === node) || (d.source.id === node && d.target.id === prevNode))
+            .attr('stroke', 'red');
+        }
+      }, index * 650);
+    });
+
+    setTimeout(() => {
+      d3.selectAll('circle').attr('fill', '#69b3a2');
+      d3.selectAll('line').attr('stroke', '#999');
+    }, dfsTraversal.length * 650 + 1000);
+  };
+
+  const visualizeBFS = (startNode) => {
+    const visited = new Set();
+    const queue = [startNode];
+    const bfsTraversal = [];
+    const bfsEdges = [];
+  
+    while (queue.length > 0) {
+      const node = queue.shift();
+      if (!visited.has(node)) {
+        visited.add(node);
+        bfsTraversal.push(node);
+        const neighbors = edges
+          .filter(edge => edge.source.id === node && !visited.has(edge.target.id))
+          .map(edge => ({ target: edge.target.id, sourceEdge: edge }));
+        for (const neighbor of neighbors) {
+            queue.push(neighbor.target);
+            bfsEdges.push(neighbor.sourceEdge);
+        }
+      }
+    }
+
+    console.log("Vertices", bfsTraversal);
+    console.log("Edges", bfsEdges);
+  
+    bfsTraversal.forEach((node, index) => {
+      setTimeout(() => {
+        d3.selectAll('circle').filter(d => d.id === node).attr('fill', 'red');
+      }, index * 1000);
+    });
+  
+    bfsEdges.forEach((edge, index) => {
+      setTimeout(() => {
+        d3.selectAll('line')
+          .filter(d => (d.source.id === edge.source.id && d.target.id === edge.target.id))
+          .attr('stroke', 'red');
+      }, index * 1000); // Offset to ensure edges are colored after nodes
+    });
+  
+    setTimeout(() => {
+      d3.selectAll('circle').attr('fill', '#69b3a2');
+      d3.selectAll('line').attr('stroke', '#999');
+    }, bfsTraversal.length * 2 * 1000 + 1000);
+  };  
+
   return (
     <div>
-      <svg ref={svgRef} width="800" height="600"></svg>
+      <svg ref={svgRef} width="800" height="600" style={{ border: '1px solid black' }}></svg>
       <div>
         <button onClick={addNode}>Add Node</button>
       </div>
@@ -178,7 +280,9 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
           <select value={sourceNode} onChange={e => setSourceNode(e.target.value)}>
             <option value="">Select Source</option>
             {vertices.map(vertex => (
-              <option key={vertex.id} value={vertex.id}>{vertex.id}</option>
+              <option key={vertex.id} value={vertex.id}>
+                {vertex.id}
+              </option>
             ))}
           </select>
         </label>
@@ -186,24 +290,35 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
           Target Node:
           <select value={targetNode} onChange={e => setTargetNode(e.target.value)} disabled={!sourceNode}>
             <option value="">Select Target</option>
-            {vertices.filter(vertex => vertex.id !== sourceNode).map(vertex => (
-              <option key={vertex.id} value={vertex.id}>{vertex.id}</option>
-            ))}
+            {vertices
+              .filter(vertex => vertex.id !== sourceNode)
+              .map(vertex => (
+                <option key={vertex.id} value={vertex.id}>
+                  {vertex.id}
+                </option>
+              ))}
           </select>
         </label>
         <label>
-          Weight:
-          <input type="number" value={edgeWeight} onChange={e => setEdgeWeight(parseFloat(e.target.value))} />
+          Edge Weight:
+          <input
+            type="number"
+            value={edgeWeight}
+            onChange={e => setEdgeWeight(parseFloat(e.target.value))}
+            min="1"
+          />
         </label>
         <button onClick={handleAddEdge}>Add Edge</button>
       </div>
       <div>
         <label>
-          Delete Node:
+          Node to Delete:
           <select value={selectedNodeToDelete} onChange={e => setSelectedNodeToDelete(e.target.value)}>
-            <option value="">Select Node to Delete</option>
+            <option value="">Select Node</option>
             {vertices.map(vertex => (
-              <option key={vertex.id} value={vertex.id}>{vertex.id}</option>
+              <option key={vertex.id} value={vertex.id}>
+                {vertex.id}
+              </option>
             ))}
           </select>
         </label>
@@ -211,12 +326,12 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
       </div>
       <div>
         <label>
-          Delete Edge:
+          Edge to Delete:
           <select value={selectedEdgeToDelete} onChange={e => setSelectedEdgeToDelete(e.target.value)}>
-            <option value="">Select Edge to Delete</option>
+            <option value="">Select Edge</option>
             {edges.map(edge => (
               <option key={`${edge.source.id}-${edge.target.id}`} value={`${edge.source.id}-${edge.target.id}`}>
-                {`${edge.source.id} -> ${edge.target.id}`}
+                {edge.source.id} -> {edge.target.id}
               </option>
             ))}
           </select>
@@ -228,7 +343,7 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
           Link Distance: {linkDistance}
           <input
             type="range"
-            min="10"
+            min="50"
             max="300"
             value={linkDistance}
             onChange={e => setLinkDistance(parseFloat(e.target.value))}
@@ -247,11 +362,42 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
           />
         </label>
       </div>
+      <div>
+        <label>
+          Select Algorithm:
+          <select value={selectedAlgorithm} onChange={handleAlgorithmChange}>
+            <option value="">Select Algorithm</option>
+            <option value="DFS">DFS</option>
+            <option value="BFS">BFS</option>
+          </select>
+        </label>
+        {selectedAlgorithm && (
+          <div>
+            <label>
+              Start Node:
+              <select
+                name="startNode"
+                value={algorithmParams.startNode || ''}
+                onChange={handleAlgorithmParamsChange}
+              >
+                <option value="">Select Start Node</option>
+                {vertices.map(vertex => (
+                  <option key={vertex.id} value={vertex.id}>
+                    {vertex.id}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button onClick={visualizeAlgorithm}>Visualize {selectedAlgorithm}</button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
 export default GraphVisualizer;
+
 
 
 
