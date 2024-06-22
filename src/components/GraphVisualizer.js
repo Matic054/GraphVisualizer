@@ -184,6 +184,8 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
       visualizeDFS(algorithmParams.startNode);
     } else if (selectedAlgorithm === 'BFS') {
       visualizeBFS(algorithmParams.startNode);
+    } else if (selectedAlgorithm === 'MST'){
+      visualizeMST(vertices, edges);
     }
   };
 
@@ -217,7 +219,8 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
     dfsEdges.forEach((edge, index) => {
       setTimeout(() => {
         d3.selectAll('line')
-          .filter(d => (d.source.id === edge.source.id && d.target.id === edge.target.id))
+          .filter(d => (d.source.id === edge.source.id && d.target.id === edge.target.id) ||
+          (d.source.id === edge.target.id && d.target.id === edge.source.id))
           .attr('stroke', 'red');
       }, index * 1000 + 300); // Offset to ensure edges are colored after nodes
     });
@@ -248,10 +251,6 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
         }
       }
     }
-
-    console.log("Visited", visited);
-    console.log("Vertices", bfsTraversal);
-    console.log("Edges", bfsEdges);
   
     bfsTraversal.forEach((node, index) => {
       setTimeout(() => {
@@ -262,7 +261,8 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
     bfsEdges.forEach((edge, index) => {
       setTimeout(() => {
         d3.selectAll('line')
-          .filter(d => (d.source.id === edge.source.id && d.target.id === edge.target.id))
+          .filter(d => (d.source.id === edge.source.id && d.target.id === edge.target.id) ||
+          (d.source.id === edge.target.id && d.target.id === edge.source.id))
           .attr('stroke', 'red');
       }, index * 1000); // Offset to ensure edges are colored after nodes
     });
@@ -272,6 +272,68 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
       d3.selectAll('line').attr('stroke', '#999');
     }, bfsTraversal.length * 1000 + 1000);
   };  
+
+  const visualizeMST = (vertices, edges) => {
+    // Union-Find (Disjoint Set) data structure
+    class UnionFind {
+      constructor(size) {
+        this.parent = Array(size).fill(0).map((_, index) => index);
+        this.rank = Array(size).fill(0);
+      }
+  
+      find(node) {
+        if (this.parent[node] !== node) {
+          this.parent[node] = this.find(this.parent[node]);
+        }
+        return this.parent[node];
+      }
+  
+      union(node1, node2) {
+        const root1 = this.find(node1);
+        const root2 = this.find(node2);
+  
+        if (root1 !== root2) {
+          if (this.rank[root1] > this.rank[root2]) {
+            this.parent[root2] = root1;
+          } else if (this.rank[root1] < this.rank[root2]) {
+            this.parent[root1] = root2;
+          } else {
+            this.parent[root2] = root1;
+            this.rank[root1]++;
+          }
+        }
+      }
+    }
+  
+    const unionFind = new UnionFind(vertices.length);
+    const sortedEdges = [...edges].sort((a, b) => a.weight - b.weight);
+    const mstEdges = [];
+  
+    sortedEdges.forEach((edge) => {
+      const sourceIndex = vertices.findIndex(v => v.id === edge.source.id);
+      const targetIndex = vertices.findIndex(v => v.id === edge.target.id);
+      if (unionFind.find(sourceIndex) !== unionFind.find(targetIndex)) {
+        unionFind.union(sourceIndex, targetIndex);
+        mstEdges.push(edge);
+      }
+    });
+  
+    mstEdges.forEach((edge, index) => {
+      setTimeout(() => {
+        d3.selectAll('line')
+          .filter(d => 
+            (d.source.id === edge.source.id && d.target.id === edge.target.id) ||
+            (d.source.id === edge.target.id && d.target.id === edge.source.id)
+          )
+          .attr('stroke', 'red');
+      }, index * 1000);
+    });
+  
+    setTimeout(() => {
+      d3.selectAll('circle').attr('fill', '#69b3a2');
+      d3.selectAll('line').attr('stroke', '#999');
+    }, mstEdges.length * 1000 + 1000);
+  };
 
   return (
     <div>
@@ -374,9 +436,10 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
             <option value="">Select Algorithm</option>
             <option value="DFS">DFS</option>
             <option value="BFS">BFS</option>
+            <option value="MST">MST</option>
           </select>
         </label>
-        {selectedAlgorithm && (
+        {selectedAlgorithm && selectedAlgorithm !== 'MST' && (
           <div>
             <label>
               Start Node:
@@ -394,6 +457,11 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
               </select>
             </label>
             <button onClick={visualizeAlgorithm}>Visualize {selectedAlgorithm}</button>
+          </div>
+        )}
+        {selectedAlgorithm === 'MST' && (
+          <div>
+            <button onClick={visualizeAlgorithm}>Visualize MST</button>
           </div>
         )}
       </div>
