@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 
-const GraphVisualizer = ({ initialVertices, initialEdges }) => {
+const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping }) => {
   const [vertices, setVertices] = useState(initialVertices);
   const [edges, setEdges] = useState(initialEdges);
+  const [sentenceMapping, setSentenceMapping] = useState(initialMapping);
+
   const [sourceNode, setSourceNode] = useState('');
   const [targetNode, setTargetNode] = useState('');
   const [edgeWeight, setEdgeWeight] = useState(1);
@@ -21,6 +23,7 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
   useEffect(() => {
     setVertices(initialVertices);
     setEdges(initialEdges);
+    setSentenceMapping(initialMapping);
   }, [initialVertices, initialEdges]);
 
   useEffect(() => {
@@ -80,7 +83,11 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
       .call(d3.drag()
         .on('start', dragstarted)
         .on('drag', dragged)
-        .on('end', dragended));
+        .on('end', dragended))
+        .on('click', (event, d) => {
+          if (sentenceMapping[d.id]!=null)
+          alert(sentenceMapping[d.id]);
+        });
 
     const text = svg.append('g')
       .selectAll('text')
@@ -402,6 +409,33 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
     }, pathEdges.length * 1000 + 1000);
   };  
 
+  const downloadGraph = () => {
+    // Format vertices
+    const vertexStrings = vertices.map(vertex => vertex.id).join(',');
+  
+    // Format edges
+    const edgeStrings = edges.map(edge => `(${edge.source.id},${edge.weight},${edge.target.id})`).join(',');
+  
+    // Get current date
+    const currentDate = new Date();
+    const formattedDate = `${String(currentDate.getDate()).padStart(2, '0')}/${String(currentDate.getMonth() + 1).padStart(2, '0')}/${currentDate.getFullYear()}`;
+  
+    // Create the content string
+    const content = `V={${vertexStrings}}\nE={${edgeStrings}}\nLast_modified: ${formattedDate}`;
+  
+    // Create a blob from the content
+    const blob = new Blob([content], { type: 'text/plain' });
+  
+    // Create a link element and trigger a download
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'graph.txt';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  
+
   return (
     <div>
       <svg ref={svgRef} width="800" height="600" style={{ border: '1px solid black' }}></svg>
@@ -464,13 +498,13 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
           <select value={selectedEdgeToDelete} onChange={e => setSelectedEdgeToDelete(e.target.value)}>
             <option value="">Select Edge</option>
             {edges.map(edge => (
-        <option 
-          key={`${typeof edge.source === 'string' ? edge.source : edge.source.id}-${typeof edge.target === 'string' ? edge.target : edge.target.id}`} 
-          value={`${typeof edge.source === 'string' ? edge.source : edge.source.id}-${typeof edge.target === 'string' ? edge.target : edge.target.id}`}
-        >
-          {`${typeof edge.source === 'string' ? edge.source : edge.source.id} -> ${typeof edge.target === 'string' ? edge.target : edge.target.id}`}
-        </option>
-      ))}
+              <option 
+                key={`${typeof edge.source === 'string' ? edge.source : edge.source.id}-${typeof edge.target === 'string' ? edge.target : edge.target.id}`} 
+                value={`${typeof edge.source === 'string' ? edge.source : edge.source.id}-${typeof edge.target === 'string' ? edge.target : edge.target.id}`}
+              >
+                {`${typeof edge.source === 'string' ? edge.source : edge.source.id} -> ${typeof edge.target === 'string' ? edge.target : edge.target.id}`}
+              </option>
+            ))}
           </select>
         </label>
         <button onClick={deleteEdge}>Delete Edge</button>
@@ -539,6 +573,9 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
             )}
           </div>
         )}
+      </div>
+      <div>
+        <button onClick={downloadGraph}>Download Graph</button>
       </div>
     </div>
   );

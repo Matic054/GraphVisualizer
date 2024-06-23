@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
 
-const FileUpload = ({ onFileParsed }) => {
+const FileUpload = ({ onGraphParsed, onSentenceGraphParsed }) => {
   const [fileContent, setFileContent] = useState('');
 
   const handleFileRead = (event) => {
     const content = event.target.result;
     setFileContent(content);
-    const { vertices, edges } = parseGraphData(content);
-    onFileParsed(vertices, edges);
+
+    if (content.startsWith('V={')) {
+      const { vertices, edges } = parseGraphData(content);
+      onGraphParsed(vertices, edges);
+    } else {
+      const { vertices, edges, sentenceMapping } = parseSentenceGraph(content);
+      onSentenceGraphParsed(vertices, edges, sentenceMapping);
+    }
   };
 
   const handleFileChosen = (file) => {
@@ -19,10 +25,9 @@ const FileUpload = ({ onFileParsed }) => {
   const parseGraphData = (data) => {
     const vertexPattern = /V=\{([^}]+)\}/;
     const edgePattern = /E=\{([^}]+)\}/;
-  
     const verticesMatch = data.match(vertexPattern);
     const edgesMatch = data.match(edgePattern);
-  
+
     const vertices = verticesMatch ? verticesMatch[1].split(',').map(v => ({ id: v.trim() })) : [];
     const edges = edgesMatch
       ? edgesMatch[1].split('),').map(edge => {
@@ -30,23 +35,47 @@ const FileUpload = ({ onFileParsed }) => {
           return { source: parts[0].trim(), target: parts[2].trim(), weight: parseFloat(parts[1]) };
         })
       : [];
-  
-    // Combine edges to make them undirected if both directions exist
-    const undirectedEdges = [];
+      const undirectedEdges = [];
 
-    edges.forEach(edge => {
-      const { source, target, weight } = edge;
-      if (edges.some(e => e.source === target && e.target === source && e.weight === weight)){
-        undirectedEdges.push({ source, target, weight, directed: false });
-      } else {
-        undirectedEdges.push({ source, target, weight, directed: true });
-      }
-      
-    });
-  
-    return { vertices, edges: undirectedEdges };
+      edges.forEach(edge => {
+        const { source, target, weight } = edge;
+        if (edges.some(e => e.source === target && e.target === source && e.weight === weight)){
+          undirectedEdges.push({ source, target, weight, directed: false });
+        } else {
+          undirectedEdges.push({ source, target, weight, directed: true });
+        }
+        
+      });
+    
+      return { vertices, edges: undirectedEdges };
   };
-  
+
+  const parseSentenceGraph = (content) => {
+    const sentences = content.split(/(?<=[.?!])\s+/);
+    const vertices = sentences.map((sentence, index) => ({ id: `v${index}` }));
+    const sentenceMapping = vertices.reduce((map, vertex, index) => {
+      map[vertex.id] = sentences[index];
+      return map;
+    }, {});
+
+    const edges = [];
+    const wordPattern = /\b\w{4,}\b/g;
+
+    for (let i = 0; i < sentences.length; i++) {
+      for (let j = i + 1; j < sentences.length; j++) {
+        const words1 = new Set(sentences[i].match(wordPattern));
+        const words2 = new Set(sentences[j].match(wordPattern));
+        const commonWords = [...words1].filter(word => words2.has(word)).length;
+        if (commonWords > 0) {
+          edges.push({ source: `v${i}`, target: `v${j}`, weight: commonWords, directed: false });
+          edges.push({ source: `v${j}`, target: `v${i}`, weight: commonWords, directed: false });
+        }
+      }
+    }
+
+    return { vertices, edges, sentenceMapping };
+  };
+
   return (
     <div>
       <input type="file" accept=".txt" onChange={e => handleFileChosen(e.target.files[0])} />
@@ -56,5 +85,6 @@ const FileUpload = ({ onFileParsed }) => {
 };
 
 export default FileUpload;
+
 
 
