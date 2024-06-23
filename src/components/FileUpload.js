@@ -47,7 +47,6 @@ const FileUpload = ({ onFileParsed }) => {
     return { vertices, edges: undirectedEdges };
   };
   
-  
   return (
     <div>
       <input type="file" accept=".txt" onChange={e => handleFileChosen(e.target.files[0])} />

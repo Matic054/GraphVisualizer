@@ -184,10 +184,12 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
       visualizeDFS(algorithmParams.startNode);
     } else if (selectedAlgorithm === 'BFS') {
       visualizeBFS(algorithmParams.startNode);
-    } else if (selectedAlgorithm === 'MST'){
+    } else if (selectedAlgorithm === 'MST') {
       visualizeMST(vertices, edges);
+    } else if (selectedAlgorithm === 'Dijkstra') {
+      visualizeDijkstra(algorithmParams.startNode);
     }
-  };
+  };  
 
   const visualizeDFS = (startNode) => {
     const visited = new Set();
@@ -335,6 +337,71 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
     }, mstEdges.length * 1000 + 1000);
   };
 
+  const visualizeDijkstra = (startNode) => {
+    const distances = {};
+    const prev = {};
+    const nodes = new Set(vertices.map(v => v.id));
+  
+    vertices.forEach(v => {
+      distances[v.id] = Infinity;
+      prev[v.id] = null;
+    });
+    distances[startNode] = 0;
+  
+    const edgesCopy = [...edges];
+  
+    while (nodes.size > 0) {
+      let minNode = null;
+      nodes.forEach(node => {
+        if (minNode === null || distances[node] < distances[minNode]) {
+          minNode = node;
+        }
+      });
+  
+      if (distances[minNode] === Infinity) {
+        break;
+      }
+  
+      nodes.delete(minNode);
+  
+      edgesCopy.forEach(edge => {
+        if (edge.source.id === minNode) {
+          const neighbor = edge.target.id;
+          const newDist = distances[minNode] + edge.weight;
+          if (newDist < distances[neighbor]) {
+            distances[neighbor] = newDist;
+            prev[neighbor] = { node: minNode, edge };
+          }
+        }
+      });
+    }
+  
+    const pathEdges = [];
+    vertices.forEach(v => {
+      let node = v.id;
+      while (prev[node] !== null) {
+        pathEdges.push(prev[node].edge);
+        node = prev[node].node;
+      }
+    });
+  
+    pathEdges.forEach((edge, index) => {
+      setTimeout(() => {
+        d3.selectAll('line')
+          .filter(d => 
+            (d.source.id === edge.source.id && d.target.id === edge.target.id) ||
+            (d.source.id === edge.target.id && d.target.id === edge.source.id)
+          )
+          .attr('stroke', 'red');
+      }, index * 1000);
+    });
+
+    setTimeout(() => {
+      d3.selectAll('circle').attr('fill', '#69b3a2');
+      d3.selectAll('line').attr('stroke', '#999');
+    }, pathEdges.length * 1000 + 1000);
+  };  
+
   return (
     <div>
       <svg ref={svgRef} width="800" height="600" style={{ border: '1px solid black' }}></svg>
@@ -397,10 +464,13 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
           <select value={selectedEdgeToDelete} onChange={e => setSelectedEdgeToDelete(e.target.value)}>
             <option value="">Select Edge</option>
             {edges.map(edge => (
-              <option key={`${edge.source.id}-${edge.target.id}`} value={`${edge.source.id}-${edge.target.id}`}>
-                {edge.source.id} -> {edge.target.id}
-              </option>
-            ))}
+        <option 
+          key={`${typeof edge.source === 'string' ? edge.source : edge.source.id}-${typeof edge.target === 'string' ? edge.target : edge.target.id}`} 
+          value={`${typeof edge.source === 'string' ? edge.source : edge.source.id}-${typeof edge.target === 'string' ? edge.target : edge.target.id}`}
+        >
+          {`${typeof edge.source === 'string' ? edge.source : edge.source.id} -> ${typeof edge.target === 'string' ? edge.target : edge.target.id}`}
+        </option>
+      ))}
           </select>
         </label>
         <button onClick={deleteEdge}>Delete Edge</button>
@@ -437,31 +507,36 @@ const GraphVisualizer = ({ initialVertices, initialEdges }) => {
             <option value="DFS">DFS</option>
             <option value="BFS">BFS</option>
             <option value="MST">MST</option>
+            <option value="Dijkstra">Dijkstra</option>
           </select>
         </label>
-        {selectedAlgorithm && selectedAlgorithm !== 'MST' && (
+        {selectedAlgorithm && (
           <div>
-            <label>
-              Start Node:
-              <select
-                name="startNode"
-                value={algorithmParams.startNode || ''}
-                onChange={handleAlgorithmParamsChange}
-              >
-                <option value="">Select Start Node</option>
-                {vertices.map(vertex => (
-                  <option key={vertex.id} value={vertex.id}>
-                    {vertex.id}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button onClick={visualizeAlgorithm}>Visualize {selectedAlgorithm}</button>
-          </div>
-        )}
-        {selectedAlgorithm === 'MST' && (
-          <div>
-            <button onClick={visualizeAlgorithm}>Visualize MST</button>
+            {(selectedAlgorithm === 'DFS' || selectedAlgorithm === 'BFS' || selectedAlgorithm === 'Dijkstra') && (
+              <div>
+                <label>
+                  Start Node:
+                  <select
+                    name="startNode"
+                    value={algorithmParams.startNode || ''}
+                    onChange={handleAlgorithmParamsChange}
+                  >
+                    <option value="">Select Start Node</option>
+                    {vertices.map(vertex => (
+                      <option key={vertex.id} value={vertex.id}>
+                        {vertex.id}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button onClick={visualizeAlgorithm}>Visualize {selectedAlgorithm}</button>
+              </div>
+            )}
+            {selectedAlgorithm === 'MST' && (
+              <div>
+                <button onClick={visualizeAlgorithm}>Visualize MST</button>
+              </div>
+            )}
           </div>
         )}
       </div>
