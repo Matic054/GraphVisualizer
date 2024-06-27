@@ -6,6 +6,11 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping }) => {
   const [edges, setEdges] = useState(initialEdges);
   const [sentenceMapping, setSentenceMapping] = useState(initialMapping);
 
+  const [dimensions, setDimensions] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight
+  });
+
   const [sourceNode, setSourceNode] = useState('');
   const [targetNode, setTargetNode] = useState('');
   const [edgeWeight, setEdgeWeight] = useState(1);
@@ -24,7 +29,17 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping }) => {
     setVertices(initialVertices);
     setEdges(initialEdges);
     setSentenceMapping(initialMapping);
-  }, [initialVertices, initialEdges]);
+
+    const handleResize = () => {
+      setDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [initialVertices, initialEdges, initialMapping]);
 
   useEffect(() => {
     if (!vertices.length) {
@@ -135,7 +150,7 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping }) => {
     }
 
     return () => simulationRef.current.stop();
-  }, [vertices, edges, linkDistance, chargeStrength]);
+  }, [vertices, edges, sentenceMapping, linkDistance, chargeStrength, dimensions]);
 
   const addNode = () => {
     const newNodeId = `v${vertices.length + 1}`;
@@ -438,7 +453,7 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping }) => {
 
   return (
     <div>
-      <svg ref={svgRef} width="800" height="600" style={{ border: '1px solid black' }}></svg>
+      <svg ref={svgRef} width={dimensions.width/2} height={dimensions.height/2} style={{ border: '1px solid black' }}></svg>
       <div>
         <button onClick={addNode}>Add Node</button>
       </div>

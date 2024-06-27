@@ -79,11 +79,11 @@ const FileUpload = ({ onGraphParsed, onSentenceGraphParsed }) => {
   return (
     <div>
       <input type="file" accept=".txt" onChange={e => handleFileChosen(e.target.files[0])} />
-      <pre>{fileContent}</pre>
+      
     </div>
   );
 };
-
+//<pre>{fileContent}</pre>
 export default FileUpload;
 
 
