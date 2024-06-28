@@ -17,7 +17,6 @@ const App = () => {
   const handleFileParsed = (parsedVertices, parsedEdges, fileText) => {
     setVertices(parsedVertices);
     setEdges(parsedEdges);
-    console.log("The texttt:", fileText);
     setText(fileText);
   };
 
@@ -47,12 +46,14 @@ const App = () => {
   return ( 
   <div className="container">
   <h1>Graph Visualizer</h1>
-  {view === 'graph' && <button onClick={() => setTextView(!textView)}>
-          {(!textView) ? 'Switch to text upload' : 'Switch to graph upload'}
-  </button>}
   <NavBar currentView={view} setView={setView} />
       {(view === 'graph' && !textView) && (
+        
         <div className="file-upload">
+          {view === 'graph' && 
+          <button onClick={() => setTextView(!textView)}>
+            {(!textView) ? 'Switch to text upload' : 'Switch to graph upload'}
+          </button>}
           <p>Upload graph file:</p>
           <FileUpload onGraphParsed={handleFileParsed} />
           <GraphVisualizer
@@ -64,6 +65,10 @@ const App = () => {
       )}
       {(view === 'graph' && textView) && (
         <div className="file-upload">
+          {view === 'graph' && 
+          <button onClick={() => setTextView(!textView)}>
+            {(!textView) ? 'Switch to text upload' : 'Switch to graph upload'}
+          </button>}
           <p>Upload text file:</p>
           <FileUpload onGraphParsed={handleTextFileParsed} />
 

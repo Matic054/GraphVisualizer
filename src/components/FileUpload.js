@@ -1,20 +1,17 @@
-import { useState } from "react";
 import React from 'react';
 
 const FileUpload = ({ onGraphParsed, onSentenceGraphParsed }) => {
-  const [fileContent, setFileContent] = useState('');
 
   const handleFileRead = (event) => {
     const content = event.target.result;
-    setFileContent(content);
+
 
     if (content.startsWith('V={')) {
       const { vertices, edges } = parseGraphData(content);
-      console.log("In file:", fileContent);
-      onGraphParsed(vertices, edges, fileContent);
+      onGraphParsed(vertices, edges, content);
     } else {
       const { vertices, edges, sentenceMapping } = parseSentenceGraph(content);
-      onGraphParsed(vertices, edges, sentenceMapping, fileContent);
+      onGraphParsed(vertices, edges, sentenceMapping, content);
     }
   };
 
@@ -81,11 +78,9 @@ const FileUpload = ({ onGraphParsed, onSentenceGraphParsed }) => {
   return (
     <div>
       <input type="file" accept=".txt" onChange={e => handleFileChosen(e.target.files[0])} />
-      
     </div>
   );
 };
-//<pre>{fileContent}</pre>
 export default FileUpload;
 
 
