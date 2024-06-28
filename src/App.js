@@ -24,7 +24,7 @@ const App = () => {
   <div className="container">
   <h1>Graph Visualizer</h1>
   <button onClick={() => setTextView(!textView)}>
-    {textView ? 'Switch to Graph View' : 'Switch to Text View'}
+    {textView ? 'Switch to graph upload' : 'Switch to text upload'}
   </button>
   {!textView ? (
     <div className="file-upload">
@@ -34,7 +34,7 @@ const App = () => {
   ) : (
     <div className="file-upload">
       <p>Upload text file:</p>
-      <FileUpload onSentenceGraphParsed={handleTextFileParsed} />
+      <FileUpload onGraphParsed={handleTextFileParsed} />
     </div>
   )}
   <div className="graph-container">

@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 const FileUpload = ({ onGraphParsed, onSentenceGraphParsed }) => {
-  const [fileContent, setFileContent] = useState('');
+  //const [fileContent, setFileContent] = useState('');
 
   const handleFileRead = (event) => {
     const content = event.target.result;
-    setFileContent(content);
+    //setFileContent(content);
 
     if (content.startsWith('V={')) {
       const { vertices, edges } = parseGraphData(content);
       onGraphParsed(vertices, edges);
     } else {
       const { vertices, edges, sentenceMapping } = parseSentenceGraph(content);
-      onSentenceGraphParsed(vertices, edges, sentenceMapping);
+      onGraphParsed(vertices, edges, sentenceMapping);
     }
   };
 
