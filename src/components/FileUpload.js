@@ -1,18 +1,20 @@
+import { useState } from "react";
 import React from 'react';
 
 const FileUpload = ({ onGraphParsed, onSentenceGraphParsed }) => {
-  //const [fileContent, setFileContent] = useState('');
+  const [fileContent, setFileContent] = useState('');
 
   const handleFileRead = (event) => {
     const content = event.target.result;
-    //setFileContent(content);
+    setFileContent(content);
 
     if (content.startsWith('V={')) {
       const { vertices, edges } = parseGraphData(content);
-      onGraphParsed(vertices, edges);
+      console.log("In file:", fileContent);
+      onGraphParsed(vertices, edges, fileContent);
     } else {
       const { vertices, edges, sentenceMapping } = parseSentenceGraph(content);
-      onGraphParsed(vertices, edges, sentenceMapping);
+      onGraphParsed(vertices, edges, sentenceMapping, fileContent);
     }
   };
 

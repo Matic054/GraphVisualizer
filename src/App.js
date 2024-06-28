@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
-import FileUpload from './components/FileUpload';
 import GraphVisualizer from './components/GraphVisualizer';
+import FileUpload from './components/FileUpload';
+import NavBar from './components/NavBar';
+import AdjacencyMatrixView from './components/AdjacencyMatrixView';
+import TextView from './components/TextView';
 import './App.css';
 
 const App = () => {
@@ -8,42 +11,73 @@ const App = () => {
   const [edges, setEdges] = useState([]);
   const [sentenceMapping, setSentenceMapping] = useState({});
   const [textView, setTextView] = useState(false);
+  const [fileText, setText] = useState('');
+  const [view, setView] = useState('graph');
 
-  const handleFileParsed = (parsedVertices, parsedEdges) => {
+  const handleFileParsed = (parsedVertices, parsedEdges, fileText) => {
     setVertices(parsedVertices);
     setEdges(parsedEdges);
+    console.log("The texttt:", fileText);
+    setText(fileText);
   };
 
-  const handleTextFileParsed = (parsedVertices, parsedEdges, sentenceMapping) => {
+  const handleTextFileParsed = (parsedVertices, parsedEdges, sentenceMapping, fileText) => {
     setVertices(parsedVertices);
     setEdges(parsedEdges);
     setSentenceMapping(sentenceMapping);
+    setText(fileText);
+  };
+
+  const updateEdges = (sourceId, targetId, weight) => {
+    setEdges(prevEdges => {
+      const updatedEdges = prevEdges.map(edge => {
+        if (
+          (edge.source.id === sourceId && edge.target.id === targetId) ||
+          (edge.source.id === targetId && edge.target.id === sourceId)
+        ) {
+          return { ...edge, weight: weight, directed: weight === 0 ? true : edge.directed };
+        }
+        return edge;
+      });
+
+      return updatedEdges.filter(edge => edge.weight !== 0);
+    });
   };
 
   return ( 
   <div className="container">
   <h1>Graph Visualizer</h1>
-  <button onClick={() => setTextView(!textView)}>
-    {textView ? 'Switch to graph upload' : 'Switch to text upload'}
-  </button>
-  {!textView ? (
-    <div className="file-upload">
-      <p>Upload graph file:</p>
-      <FileUpload onGraphParsed={handleFileParsed} />
-    </div>
-  ) : (
-    <div className="file-upload">
-      <p>Upload text file:</p>
-      <FileUpload onGraphParsed={handleTextFileParsed} />
-    </div>
-  )}
-  <div className="graph-container">
-    <GraphVisualizer
-      initialVertices={vertices}
-      initialEdges={edges}
-      initialMapping={sentenceMapping}
-    />
-  </div>
+  {view === 'graph' && <button onClick={() => setTextView(!textView)}>
+          {(!textView) ? 'Switch to text upload' : 'Switch to graph upload'}
+  </button>}
+  <NavBar currentView={view} setView={setView} />
+      {(view === 'graph' && !textView) && (
+        <div className="file-upload">
+          <p>Upload graph file:</p>
+          <FileUpload onGraphParsed={handleFileParsed} />
+          <GraphVisualizer
+            initialVertices={vertices}
+            initialEdges={edges}
+            initialMapping={sentenceMapping}
+          />
+        </div>
+      )}
+      {(view === 'graph' && textView) && (
+        <div className="file-upload">
+          <p>Upload text file:</p>
+          <FileUpload onGraphParsed={handleTextFileParsed} />
+
+          <GraphVisualizer
+            initialVertices={vertices}
+            initialEdges={edges}
+            initialMapping={sentenceMapping}
+          />
+      </div>
+      )}
+      {view === 'matrix' && (
+        <AdjacencyMatrixView vertices={vertices} edges={edges} updateEdges={updateEdges} />
+      )}
+      {view === 'text' && <TextView text={fileText} />}
 </div>
   );
 };
