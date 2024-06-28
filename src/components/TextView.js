@@ -2,7 +2,7 @@ import React from 'react';
 
 const TextView = ({ text }) => {
   return (
-    <div>
+    <div className="text-container">
       <pre>{text}</pre>
     </div>
   );

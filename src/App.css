@@ -60,3 +60,43 @@ h1 {
 .graph-container {
   border: 1px solid black;
 }
+
+.text-container {
+  margin: 0 auto;
+  margin-top: 3%;
+  width: 60%; 
+  text-align: center;
+}
+
+.text-container pre {
+  white-space: pre-wrap; 
+  word-wrap: break-word; 
+  font-size: 18px; 
+  line-height: 1.6;
+}
+
+.adjacency-matrix-container {
+  margin: 0 auto;
+  margin-top: 3%;
+  width: 30%; /* Make the table 30% wide */
+  height: 30%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.adjacency-matrix {
+  border-collapse: collapse; /* Merge borders of adjacent cells */
+  width: 100%; /* Make the table take up the full width of the container */
+}
+
+.adjacency-matrix th,
+.adjacency-matrix td {
+  border: 1px solid black; /* Add borders to table cells */
+  padding: 8px; /* Add some padding to the cells */
+  text-align: center; /* Center-align the text in the cells */
+}
+
+.adjacency-matrix th {
+  background-color: #f2f2f2; /* Add a background color to the header cells */
+}

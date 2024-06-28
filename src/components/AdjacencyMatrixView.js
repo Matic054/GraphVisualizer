@@ -9,32 +9,34 @@ const AdjacencyMatrixView = ({ vertices, edges, updateEdges }) => {
   };
 
   return (
-    <table>
-      <thead>
-        <tr>
-          <th></th>
-          {vertices.map(vertex => (
-            <th key={vertex.id}>{vertex.id}</th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {matrix.map((row, i) => (
-          <tr key={vertices[i].id}>
-            <td>{vertices[i].id}</td>
-            {row.map((cell, j) => (
-              <td
-                key={`${i}-${j}`}
-                onClick={() => handleCellClick(i, j)}
-                style={{ cursor: 'pointer' }}
-              >
-                {cell}
-              </td>
+    <div className="adjacency-matrix-container">
+      <table className="adjacency-matrix">
+        <thead>
+          <tr>
+            <th></th>
+            {vertices.map(vertex => (
+              <th key={vertex.id}>{vertex.id}</th>
             ))}
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {matrix.map((row, i) => (
+            <tr key={vertices[i].id}>
+              <td>{vertices[i].id}</td>
+              {row.map((cell, j) => (
+                <td
+                  key={`${i}-${j}`}
+                  onClick={() => handleCellClick(i, j)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  {cell}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 };
 
@@ -56,3 +58,4 @@ const createAdjacencyMatrix = (vertices, edges) => {
 };
 
 export default AdjacencyMatrixView;
+
