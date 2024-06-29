@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 
-const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping }) => {
+const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, istext }) => {
   const [vertices, setVertices] = useState(initialVertices);
   const [edges, setEdges] = useState(initialEdges);
   const [sentenceMapping, setSentenceMapping] = useState(initialMapping);
+  const [isText, setIsText] = useState(istext);
+  const [firstEdges, setFirstEdges] = useState(initialEdges);
 
   const [dimensions, setDimensions] = useState({
     width: window.innerWidth,
@@ -18,6 +20,7 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping }) => {
   const [selectedEdgeToDelete, setSelectedEdgeToDelete] = useState('');
   const [linkDistance, setLinkDistance] = useState(150);
   const [chargeStrength, setChargeStrength] = useState(-500);
+  const [textPar, setTextPar] = useState(1);
 
   const [selectedAlgorithm, setSelectedAlgorithm] = useState('');
   const [algorithmParams, setAlgorithmParams] = useState({});
@@ -29,6 +32,8 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping }) => {
     setVertices(initialVertices);
     setEdges(initialEdges);
     setSentenceMapping(initialMapping);
+    setFirstEdges(initialEdges);
+    setIsText(istext);
 
     const handleResize = () => {
       setDimensions({
@@ -39,7 +44,7 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping }) => {
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [initialVertices, initialEdges, initialMapping]);
+  }, [initialVertices, initialEdges, initialMapping, istext]);
 
   useEffect(() => {
     if (!vertices.length) {
@@ -449,148 +454,169 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping }) => {
     link.click();
     document.body.removeChild(link);
   };
+
+  const updateTextGraph = (par) =>{
+    setTextPar(par);
+    const newEdges = firstEdges.filter(edge => (edge.weight >= par));
+    setEdges(newEdges);
+  } 
   
 
   return (
-    <div>
-      <svg ref={svgRef} width={dimensions.width/2} height={dimensions.height/2} style={{ border: '1px solid black' }}></svg>
-      <div>
-        <button onClick={addNode}>Add Node</button>
-      </div>
-      <div>
-        <label>
-          Source Node:
-          <select value={sourceNode} onChange={e => setSourceNode(e.target.value)}>
-            <option value="">Select Source</option>
-            {vertices.map(vertex => (
-              <option key={vertex.id} value={vertex.id}>
-                {vertex.id}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Target Node:
-          <select value={targetNode} onChange={e => setTargetNode(e.target.value)} disabled={!sourceNode}>
-            <option value="">Select Target</option>
-            {vertices
-              .filter(vertex => vertex.id !== sourceNode)
-              .map(vertex => (
+    <div className="graph-visualizer">
+      <svg ref={svgRef} width={dimensions.width / 2.3} height={dimensions.height / 1.5}></svg>
+      <div className="graph-visualizer-row">
+        <div>
+          <button onClick={addNode}>Add Node</button>
+        </div>
+        <div>
+          <label>
+            Source Node:
+            <select value={sourceNode} onChange={e => setSourceNode(e.target.value)}>
+              <option value="">Select Source</option>
+              {vertices.map(vertex => (
                 <option key={vertex.id} value={vertex.id}>
                   {vertex.id}
                 </option>
               ))}
-          </select>
-        </label>
-        <label>
-          Edge Weight:
-          <input
-            type="number"
-            value={edgeWeight}
-            onChange={e => setEdgeWeight(parseFloat(e.target.value))}
-            min="1"
-          />
-        </label>
-        <button onClick={handleAddEdge}>Add Edge</button>
-      </div>
-      <div>
-        <label>
-          Node to Delete:
-          <select value={selectedNodeToDelete} onChange={e => setSelectedNodeToDelete(e.target.value)}>
-            <option value="">Select Node</option>
-            {vertices.map(vertex => (
-              <option key={vertex.id} value={vertex.id}>
-                {vertex.id}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button onClick={deleteNode}>Delete Node</button>
-      </div>
-      <div>
-        <label>
-          Edge to Delete:
-          <select value={selectedEdgeToDelete} onChange={e => setSelectedEdgeToDelete(e.target.value)}>
-            <option value="">Select Edge</option>
-            {edges.map(edge => (
-              <option 
-                key={`${typeof edge.source === 'string' ? edge.source : edge.source.id}-${typeof edge.target === 'string' ? edge.target : edge.target.id}`} 
-                value={`${typeof edge.source === 'string' ? edge.source : edge.source.id}-${typeof edge.target === 'string' ? edge.target : edge.target.id}`}
-              >
-                {`${typeof edge.source === 'string' ? edge.source : edge.source.id} -> ${typeof edge.target === 'string' ? edge.target : edge.target.id}`}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button onClick={deleteEdge}>Delete Edge</button>
-      </div>
-      <div>
-        <label>
-          Link Distance: {linkDistance}
-          <input
-            type="range"
-            min="50"
-            max="300"
-            value={linkDistance}
-            onChange={e => setLinkDistance(parseFloat(e.target.value))}
-          />
-        </label>
-      </div>
-      <div>
-        <label>
-          Charge Strength: {chargeStrength}
-          <input
-            type="range"
-            min="-1000"
-            max="0"
-            value={chargeStrength}
-            onChange={e => setChargeStrength(parseFloat(e.target.value))}
-          />
-        </label>
-      </div>
-      <div>
-        <label>
-          Select Algorithm:
-          <select value={selectedAlgorithm} onChange={handleAlgorithmChange}>
-            <option value="">Select Algorithm</option>
-            <option value="DFS">DFS</option>
-            <option value="BFS">BFS</option>
-            <option value="MST">MST</option>
-            <option value="Dijkstra">Dijkstra</option>
-          </select>
-        </label>
-        {selectedAlgorithm && (
-          <div>
-            {(selectedAlgorithm === 'DFS' || selectedAlgorithm === 'BFS' || selectedAlgorithm === 'Dijkstra') && (
-              <div>
-                <label>
-                  Start Node:
-                  <select
-                    name="startNode"
-                    value={algorithmParams.startNode || ''}
-                    onChange={handleAlgorithmParamsChange}
-                  >
-                    <option value="">Select Start Node</option>
-                    {vertices.map(vertex => (
-                      <option key={vertex.id} value={vertex.id}>
-                        {vertex.id}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <button onClick={visualizeAlgorithm}>Visualize {selectedAlgorithm}</button>
-              </div>
-            )}
-            {selectedAlgorithm === 'MST' && (
-              <div>
-                <button onClick={visualizeAlgorithm}>Visualize MST</button>
-              </div>
-            )}
-          </div>
+            </select>
+          </label>
+          <label>
+            Target Node:
+            <select value={targetNode} onChange={e => setTargetNode(e.target.value)} disabled={!sourceNode}>
+              <option value="">Select Target</option>
+              {vertices
+                .filter(vertex => vertex.id !== sourceNode)
+                .map(vertex => (
+                  <option key={vertex.id} value={vertex.id}>
+                    {vertex.id}
+                  </option>
+                ))}
+            </select>
+          </label>
+          <label>
+            Edge Weight:
+            <input
+              type="number"
+              value={edgeWeight}
+              onChange={e => setEdgeWeight(parseFloat(e.target.value))}
+              min="1"
+            />
+          </label>
+          <button onClick={handleAddEdge}>Add Edge</button>
+        </div>
+        <div>
+          <label>
+            Node to Delete:
+            <select value={selectedNodeToDelete} onChange={e => setSelectedNodeToDelete(e.target.value)}>
+              <option value="">Select Node</option>
+              {vertices.map(vertex => (
+                <option key={vertex.id} value={vertex.id}>
+                  {vertex.id}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button onClick={deleteNode}>Delete Node</button>
+        </div>
+        <div>
+          <label>
+            Edge to Delete:
+            <select value={selectedEdgeToDelete} onChange={e => setSelectedEdgeToDelete(e.target.value)}>
+              <option value="">Select Edge</option>
+              {edges.map(edge => (
+                <option 
+                  key={`${typeof edge.source === 'string' ? edge.source : edge.source.id}-${typeof edge.target === 'string' ? edge.target : edge.target.id}`} 
+                  value={`${typeof edge.source === 'string' ? edge.source : edge.source.id}-${typeof edge.target === 'string' ? edge.target : edge.target.id}`}
+                >
+                  {`${typeof edge.source === 'string' ? edge.source : edge.source.id} -> ${typeof edge.target === 'string' ? edge.target : edge.target.id}`}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button onClick={deleteEdge}>Delete Edge</button>
+        </div>
+        <div>
+          <label>
+            Link Distance: {linkDistance}
+            <input
+              type="range"
+              min="50"
+              max="300"
+              value={linkDistance}
+              onChange={e => setLinkDistance(parseFloat(e.target.value))}
+            />
+          </label>
+        </div>
+        <div>
+          <label>
+            Charge Strength: {chargeStrength}
+            <input
+              type="range"
+              min="-1000"
+              max="0"
+              value={chargeStrength}
+              onChange={e => setChargeStrength(parseFloat(e.target.value))}
+            />
+          </label>
+        </div>
+        <div>
+          <label>
+            Select Algorithm:
+            <select value={selectedAlgorithm} onChange={handleAlgorithmChange}>
+              <option value="">Select Algorithm</option>
+              <option value="DFS">DFS</option>
+              <option value="BFS">BFS</option>
+              <option value="MST">MST</option>
+              <option value="Dijkstra">Dijkstra</option>
+            </select>
+          </label>
+          {selectedAlgorithm && (
+            <div>
+              {(selectedAlgorithm === 'DFS' || selectedAlgorithm === 'BFS' || selectedAlgorithm === 'Dijkstra') && (
+                <div>
+                  <label>
+                    Start Node:
+                    <select
+                      name="startNode"
+                      value={algorithmParams.startNode || ''}
+                      onChange={handleAlgorithmParamsChange}
+                    >
+                      <option value="">Select Start Node</option>
+                      {vertices.map(vertex => (
+                        <option key={vertex.id} value={vertex.id}>
+                          {vertex.id}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <button onClick={visualizeAlgorithm}>Visualize {selectedAlgorithm}</button>
+                </div>
+              )}
+              {selectedAlgorithm === 'MST' && (
+                <div>
+                  <button onClick={visualizeAlgorithm}>Visualize MST</button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        <div>
+          <button onClick={downloadGraph}>Download Graph</button>
+        </div>
+        {isText && (
+        <div>
+          <label>
+            Text parameter:
+            <input
+              type="number"
+              value={textPar}
+              onChange={e => updateTextGraph(parseFloat(e.target.value))}
+              min="1"
+            />
+          </label>
+        </div>
         )}
-      </div>
-      <div>
-        <button onClick={downloadGraph}>Download Graph</button>
       </div>
     </div>
   );

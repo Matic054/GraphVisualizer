@@ -60,6 +60,7 @@ const App = () => {
             initialVertices={vertices}
             initialEdges={edges}
             initialMapping={sentenceMapping}
+            istext={false}
           />
         </div>
       )}
@@ -76,6 +77,7 @@ const App = () => {
             initialVertices={vertices}
             initialEdges={edges}
             initialMapping={sentenceMapping}
+            istext={true}
           />
       </div>
       )}
