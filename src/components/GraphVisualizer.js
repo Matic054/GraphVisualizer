@@ -464,10 +464,48 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, istext
 
   return (
     <div className="graph-visualizer">
-      <svg ref={svgRef} width={dimensions.width / 2.3} height={dimensions.height / 1.5}></svg>
+      <svg ref={svgRef} width={dimensions.width/2} height={dimensions.height/1.5}></svg>
       <div className="graph-visualizer-row">
         <div>
-          <button onClick={addNode}>Add Node</button>
+          <label>
+            Select Algorithm:
+            <select value={selectedAlgorithm} onChange={handleAlgorithmChange}>
+              <option value="">Select Algorithm</option>
+              <option value="DFS">DFS</option>
+              <option value="BFS">BFS</option>
+              <option value="MST">MST</option>
+              <option value="Dijkstra">Dijkstra</option>
+            </select>
+          </label>
+          {selectedAlgorithm && (
+            <div>
+              {(selectedAlgorithm === 'DFS' || selectedAlgorithm === 'BFS' || selectedAlgorithm === 'Dijkstra') && (
+                <div>
+                  <label>
+                    Start Node:
+                    <select
+                      name="startNode"
+                      value={algorithmParams.startNode || ''}
+                      onChange={handleAlgorithmParamsChange}
+                    >
+                      <option value="">Select Start Node</option>
+                      {vertices.map(vertex => (
+                        <option key={vertex.id} value={vertex.id}>
+                          {vertex.id}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <button onClick={visualizeAlgorithm}>Visualize {selectedAlgorithm}</button>
+                </div>
+              )}
+              {selectedAlgorithm === 'MST' && (
+                <div>
+                  <button onClick={visualizeAlgorithm}>Visualize MST</button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
         <div>
           <label>
@@ -561,45 +599,7 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, istext
           </label>
         </div>
         <div>
-          <label>
-            Select Algorithm:
-            <select value={selectedAlgorithm} onChange={handleAlgorithmChange}>
-              <option value="">Select Algorithm</option>
-              <option value="DFS">DFS</option>
-              <option value="BFS">BFS</option>
-              <option value="MST">MST</option>
-              <option value="Dijkstra">Dijkstra</option>
-            </select>
-          </label>
-          {selectedAlgorithm && (
-            <div>
-              {(selectedAlgorithm === 'DFS' || selectedAlgorithm === 'BFS' || selectedAlgorithm === 'Dijkstra') && (
-                <div>
-                  <label>
-                    Start Node:
-                    <select
-                      name="startNode"
-                      value={algorithmParams.startNode || ''}
-                      onChange={handleAlgorithmParamsChange}
-                    >
-                      <option value="">Select Start Node</option>
-                      {vertices.map(vertex => (
-                        <option key={vertex.id} value={vertex.id}>
-                          {vertex.id}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <button onClick={visualizeAlgorithm}>Visualize {selectedAlgorithm}</button>
-                </div>
-              )}
-              {selectedAlgorithm === 'MST' && (
-                <div>
-                  <button onClick={visualizeAlgorithm}>Visualize MST</button>
-                </div>
-              )}
-            </div>
-          )}
+          <button onClick={addNode}>Add Node</button>
         </div>
         <div>
           <button onClick={downloadGraph}>Download Graph</button>

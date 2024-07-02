@@ -105,6 +105,10 @@ h1 {
   background-color: #f2f2f2; /* Add a background color to the header cells */
 }
 
+.adjacency-matrix td {
+  background-color: #d8d7d7; /* Add a background color to the header cells */
+}
+
 .navbar {
   display: flex;
   justify-content: center; /* Center the buttons */
@@ -140,22 +144,20 @@ h1 {
 .graph-visualizer {
   display: flex;
   flex-direction: row;
-  align-items: center;
-  margin: 20px;
+  margin: 50px;
 }
 
 .graph-visualizer svg {
   border: 1px solid black;
   margin-bottom: 20px;
-  margin-left: 12.5%;
   background-color: #ffffff;
 }
 
-.graph-visualizer div {
+.graph-visualizer div:not(.graph-visualizer-row) {
   border: 1px solid black;
   margin: 5px;
   padding: 10px;
-  width: calc(33% - 20px); /* Adjusting width to fit three divs in a row */
+  width: 100%; /* Adjusting width to fit three divs in a row */
   box-sizing: border-box; /* Ensure padding and border are included in the width */
   background-color: #333;
   font-size: 16px;
@@ -198,16 +200,13 @@ h1 {
   font-size: 16px;
 }
 
-.graph-visualizer-row {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-around;
-  width: 100%;
-}
-
 .graph-visualizer input[type="range"],
 .graph-visualizer input[type="number"] {
   width: 76%;
+}
+
+.graph-visualizer-row {
+  width:25%;
 }
 
 
