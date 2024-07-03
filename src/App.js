@@ -28,32 +28,67 @@ const App = () => {
   };
 
   const updateEdges = (sourceId, targetId, weight) => {
-    setEdges(prevEdges => {
-      const updatedEdges = prevEdges.map(edge => {
-        if (
-          (edge.source.id === sourceId && edge.target.id === targetId) ||
-          (edge.source.id === targetId && edge.target.id === sourceId)
-        ) {
-          return { ...edge, weight: weight, directed: weight === 0 ? true : edge.directed };
+    const source = vertices.find(vertex => vertex.id === sourceId);
+    const target = vertices.find(vertex => vertex.id === targetId);
+  
+    if (source && target) {
+      let updatedEdges = edges.map(edge => {
+        if (edge.source.id === sourceId && edge.target.id === targetId) {
+          return { ...edge, weight };
+        }
+        if (edge.source.id === targetId && edge.target.id === sourceId && weight !== 0) {
+          return { ...edge, weight, directed: false };
         }
         return edge;
-      });
-
-      return updatedEdges.filter(edge => edge.weight !== 0);
-    });
+      }).filter(edge => edge.weight !== 0);
+  
+      const oppositeEdgeIndex = updatedEdges.findIndex(edge => 
+        edge.source.id === targetId && edge.target.id === sourceId
+      );
+  
+      if (!updatedEdges.some(edge => edge.source.id === sourceId && edge.target.id === targetId)) {
+        if (weight !== 0) {
+          if (oppositeEdgeIndex !== -1) {
+            // Make the opposite edge undirected
+            updatedEdges[oppositeEdgeIndex] = { ...updatedEdges[oppositeEdgeIndex], directed: false };
+            // Add the new undirected edge
+            updatedEdges.push({ source, target, weight, directed: false });
+          } else {
+            // Add the new directed edge
+            updatedEdges.push({ source, target, weight, directed: true });
+          }
+        }
+      }
+      setEdges(updatedEdges);
+    }
   };
+  
+  const updateVertices = (nodeId) => {
+    const nodeExists = vertices.some(vertex => vertex.id === nodeId);
+  
+    if (nodeExists) {
+      // Remove the node and all its edges
+      setVertices(vertices.filter(vertex => vertex.id !== nodeId));
+      setEdges(edges.filter(edge => edge.source.id !== nodeId && edge.target.id !== nodeId));
+    } else {
+      // Add the new node
+      setVertices([...vertices, { id: nodeId }]);
+    }
+  };    
 
   return ( 
   <div className="container">
   <h1>Graph Visualizer</h1>
   <NavBar currentView={view} setView={setView} />
+  {(view === 'graph') && (
+    <button onClick={() => setTextView(!textView)}>
+      {(!textView) ? 'Switch to text upload' : 'Switch to graph upload'}
+    </button>
+  )}
       {(view === 'graph' && !textView) && (
         
         <div className="file-upload">
-          {view === 'graph' && 
-          <button onClick={() => setTextView(!textView)}>
-            {(!textView) ? 'Switch to text upload' : 'Switch to graph upload'}
-          </button>}
+          {view === 'graph'}
           <p>Upload graph file:</p>
           <FileUpload onGraphParsed={handleFileParsed} />
           <GraphVisualizer
@@ -61,15 +96,14 @@ const App = () => {
             initialEdges={edges}
             initialMapping={sentenceMapping}
             istext={false}
+            updateEdges={updateEdges}
+            updateVertices={updateVertices}
           />
         </div>
       )}
       {(view === 'graph' && textView) && (
         <div className="file-upload">
-          {view === 'graph' && 
-          <button onClick={() => setTextView(!textView)}>
-            {(!textView) ? 'Switch to text upload' : 'Switch to graph upload'}
-          </button>}
+          {view === 'graph'}
           <p>Upload text file:</p>
           <FileUpload onGraphParsed={handleTextFileParsed} />
 
@@ -78,11 +112,16 @@ const App = () => {
             initialEdges={edges}
             initialMapping={sentenceMapping}
             istext={true}
+            updateEdges={updateEdges}
+            updateVertices={updateVertices}
           />
       </div>
       )}
       {view === 'matrix' && (
-        <AdjacencyMatrixView vertices={vertices} edges={edges} updateEdges={updateEdges} />
+        <AdjacencyMatrixView 
+          vertices={vertices} 
+          edges={edges} 
+          updateEdges={updateEdges} />
       )}
       {view === 'text' && <TextView text={fileText} />}
 </div>

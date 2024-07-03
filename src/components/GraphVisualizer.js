@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 
-const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, istext }) => {
+const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, istext, updateEdges, updateVertices }) => {
   const [vertices, setVertices] = useState(initialVertices);
   const [edges, setEdges] = useState(initialEdges);
   const [sentenceMapping, setSentenceMapping] = useState(initialMapping);
@@ -161,6 +161,7 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, istext
     const newNodeId = `v${vertices.length + 1}`;
     const newVertices = [...vertices, { id: newNodeId }];
     setVertices(newVertices);
+    updateVertices(newNodeId);
   };
 
   const handleAddEdge = () => {
@@ -181,6 +182,7 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, istext
     } else {
       setEdges([...edges, newEdge]);
     }
+    updateEdges(sourceNode, targetNode, edgeWeight);
   };
 
   const deleteNode = () => {
@@ -188,12 +190,14 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, istext
     const newEdges = edges.filter(edge => edge.source.id !== selectedNodeToDelete && edge.target.id !== selectedNodeToDelete);
     setVertices(newVertices);
     setEdges(newEdges);
+    updateVertices(selectedNodeToDelete);
   };
 
   const deleteEdge = () => {
     const [source, target] = selectedEdgeToDelete.split('-');
     const newEdges = edges.filter(edge => !(edge.source.id === source && edge.target.id === target));
     setEdges(newEdges);
+    updateEdges(source, target, 0);
   };
 
   const handleAlgorithmChange = (e) => {
@@ -461,7 +465,6 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, istext
     setEdges(newEdges);
   } 
   
-
   return (
     <div className="graph-visualizer">
       <svg ref={svgRef} width={dimensions.width/2} height={dimensions.height/1.5}></svg>

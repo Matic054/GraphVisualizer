@@ -5,7 +5,6 @@ const FileUpload = ({ onGraphParsed, onSentenceGraphParsed }) => {
   const handleFileRead = (event) => {
     const content = event.target.result;
 
-
     if (content.startsWith('V={')) {
       const { vertices, edges } = parseGraphData(content);
       onGraphParsed(vertices, edges, content);
