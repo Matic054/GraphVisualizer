@@ -14,17 +14,12 @@ const App = () => {
   const [fileText, setText] = useState('');
   const [view, setView] = useState('graph');
 
-  const handleFileParsed = (parsedVertices, parsedEdges, fileText) => {
-    setVertices(parsedVertices);
-    setEdges(parsedEdges);
-    setText(fileText);
-  };
-
-  const handleTextFileParsed = (parsedVertices, parsedEdges, sentenceMapping, fileText) => {
+  const handleFileParsed = (parsedVertices, parsedEdges, sentenceMapping, fileText, isText) => {
     setVertices(parsedVertices);
     setEdges(parsedEdges);
     setSentenceMapping(sentenceMapping);
     setText(fileText);
+    setTextView(isText);
   };
 
   const updateEdges = (sourceId, targetId, weight) => {
@@ -49,12 +44,9 @@ const App = () => {
       if (!updatedEdges.some(edge => edge.source.id === sourceId && edge.target.id === targetId)) {
         if (weight !== 0) {
           if (oppositeEdgeIndex !== -1) {
-            // Make the opposite edge undirected
             updatedEdges[oppositeEdgeIndex] = { ...updatedEdges[oppositeEdgeIndex], directed: false };
-            // Add the new undirected edge
             updatedEdges.push({ source, target, weight, directed: false });
           } else {
-            // Add the new directed edge
             updatedEdges.push({ source, target, weight, directed: true });
           }
         }
@@ -65,13 +57,10 @@ const App = () => {
   
   const updateVertices = (nodeId) => {
     const nodeExists = vertices.some(vertex => vertex.id === nodeId);
-  
     if (nodeExists) {
-      // Remove the node and all its edges
       setVertices(vertices.filter(vertex => vertex.id !== nodeId));
       setEdges(edges.filter(edge => edge.source.id !== nodeId && edge.target.id !== nodeId));
     } else {
-      // Add the new node
       setVertices([...vertices, { id: nodeId }]);
     }
   };    
@@ -80,42 +69,22 @@ const App = () => {
   <div className="container">
   <h1>Graph Visualizer</h1>
   <NavBar currentView={view} setView={setView} />
-  {(view === 'graph') && (
-    <button onClick={() => setTextView(!textView)}>
-      {(!textView) ? 'Switch to text upload' : 'Switch to graph upload'}
-    </button>
-  )}
-      {(view === 'graph' && !textView) && (
+      {(view === 'graph') && (
         
         <div className="file-upload">
-          {view === 'graph'}
-          <p>Upload graph file:</p>
-          <FileUpload onGraphParsed={handleFileParsed} />
+          <div className="upload">
+            <p>Upload file:</p>
+            <FileUpload onGraphParsed={handleFileParsed} />
+          </div>
           <GraphVisualizer
             initialVertices={vertices}
             initialEdges={edges}
             initialMapping={sentenceMapping}
-            istext={false}
+            istext={textView}
             updateEdges={updateEdges}
             updateVertices={updateVertices}
           />
         </div>
-      )}
-      {(view === 'graph' && textView) && (
-        <div className="file-upload">
-          {view === 'graph'}
-          <p>Upload text file:</p>
-          <FileUpload onGraphParsed={handleTextFileParsed} />
-
-          <GraphVisualizer
-            initialVertices={vertices}
-            initialEdges={edges}
-            initialMapping={sentenceMapping}
-            istext={true}
-            updateEdges={updateEdges}
-            updateVertices={updateVertices}
-          />
-      </div>
       )}
       {view === 'matrix' && (
         <AdjacencyMatrixView 

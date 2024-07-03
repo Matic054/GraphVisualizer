@@ -40,12 +40,20 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background-color: #beb3b3;
+  background-color: #7d7c7c;
 }
 
 h1 {
   text-align: center;
   margin-top: 20px;
+  color: white;
+    text-shadow: 
+      -1px -1px 0 #000,  
+       1px -1px 0 #000,
+      -1px  1px 0 #000,
+       1px  1px 0 #000; 
+    font-size: 2em;
+    font-weight: bold;
 }
 
 .container {
@@ -56,6 +64,17 @@ h1 {
 
 .file-upload {
   margin: 20px 0;
+}
+
+.upload {
+  border: 1px solid black;
+  margin: 5px;
+  padding: 10px;
+  width: 12%; 
+  box-sizing: border-box; 
+  background-color: #333;
+  font-size: 16px;
+  color: white;
 }
 
 .graph-container {
