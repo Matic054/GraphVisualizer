@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 
-const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, istext, updateEdges, updateVertices }) => {
+const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, istext, updateEdges, updateVertices, updateAllEdges, isnew, updateNew }) => {
   const [vertices, setVertices] = useState(initialVertices);
   const [edges, setEdges] = useState(initialEdges);
   const [sentenceMapping, setSentenceMapping] = useState(initialMapping);
   const [isText, setIsText] = useState(istext);
-  const [firstEdges, setFirstEdges] = useState(initialEdges);
+  const firstEdges = useRef(initialEdges);
+  const [isNew, setIsNew] = useState(isnew);
 
   const [dimensions, setDimensions] = useState({
     width: window.innerWidth,
@@ -37,7 +38,8 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, istext
     setVertices(initialVertices);
     setEdges(initialEdges);
     setSentenceMapping(initialMapping);
-    setFirstEdges(initialEdges);
+    //setFirstEdges(initialEdges);
+    setIsNew(isnew);
     setIsText(istext);
 
     const handleResize = () => {
@@ -49,7 +51,7 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, istext
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [initialVertices, initialEdges, initialMapping, istext]);
+  }, [initialVertices, initialEdges, initialMapping, istext, isnew]);
 
   useEffect(() => {
     if (!vertices.length) {
@@ -503,9 +505,14 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, istext
   };
 
   const updateTextGraph = (par) =>{
+    if (isNew){
+      firstEdges.current = edges;
+      updateNew();
+    } 
     setTextPar(par);
-    const newEdges = firstEdges.filter(edge => (edge.weight >= par));
+    const newEdges = firstEdges.current.filter(edge => (edge.weight >= par));
     setEdges(newEdges);
+    updateAllEdges(newEdges);
   } 
 
   const stopAnimation = () => {
@@ -515,7 +522,6 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, istext
     d3.selectAll('circle').attr('fill', '#69b3a2');
     d3.selectAll('line').attr('stroke', '#999');
   };
-  
   
   return (
     <div className="graph-visualizer">
@@ -676,7 +682,7 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, istext
         <div>
           <button onClick={downloadGraph}>Download Graph</button>
         </div>
-        {isText && (
+        {(isText || true) && ( 
         <div>
           <label>
             Text parameter:

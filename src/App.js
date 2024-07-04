@@ -13,6 +13,7 @@ const App = () => {
   const [textView, setTextView] = useState(false);
   const [fileText, setText] = useState('');
   const [view, setView] = useState('graph');
+  const [isNew, setIsNew] = useState(false);
 
   const handleFileParsed = (parsedVertices, parsedEdges, sentenceMapping, fileText, isText) => {
     setVertices(parsedVertices);
@@ -20,6 +21,7 @@ const App = () => {
     setSentenceMapping(sentenceMapping);
     setText(fileText);
     setTextView(isText);
+    setIsNew(true);
   };
 
   const updateEdges = (sourceId, targetId, weight) => {
@@ -65,6 +67,12 @@ const App = () => {
     }
   };    
 
+  const updateAllEdges = (newEdges) => {
+    setEdges(newEdges);
+  }
+
+  const updateNew = () => {setIsNew(!isNew)}
+
   return ( 
   <div className="container">
   <h1>Graph Visualizer</h1>
@@ -83,6 +91,9 @@ const App = () => {
             istext={textView}
             updateEdges={updateEdges}
             updateVertices={updateVertices}
+            updateAllEdges={updateAllEdges}
+            isnew={isNew}
+            updateNew={updateNew}
           />
         </div>
       )}
