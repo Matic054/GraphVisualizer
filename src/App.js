@@ -10,17 +10,15 @@ const App = () => {
   const [vertices, setVertices] = useState([]);
   const [edges, setEdges] = useState([]);
   const [sentenceMapping, setSentenceMapping] = useState({});
-  const [textView, setTextView] = useState(false);
   const [fileText, setText] = useState('');
   const [view, setView] = useState('graph');
   const [isNew, setIsNew] = useState(false);
 
-  const handleFileParsed = (parsedVertices, parsedEdges, sentenceMapping, fileText, isText) => {
+  const handleFileParsed = (parsedVertices, parsedEdges, sentenceMapping, fileText) => {
     setVertices(parsedVertices);
     setEdges(parsedEdges);
     setSentenceMapping(sentenceMapping);
     setText(fileText);
-    setTextView(isText);
     setIsNew(true);
   };
 
@@ -88,7 +86,6 @@ const App = () => {
             initialVertices={vertices}
             initialEdges={edges}
             initialMapping={sentenceMapping}
-            istext={textView}
             updateEdges={updateEdges}
             updateVertices={updateVertices}
             updateAllEdges={updateAllEdges}

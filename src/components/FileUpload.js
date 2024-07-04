@@ -7,10 +7,10 @@ const FileUpload = ({ onGraphParsed, onSentenceGraphParsed }) => {
 
     if (content.startsWith('V={')) {
       const { vertices, edges } = parseGraphData(content);
-      onGraphParsed(vertices, edges, {}, content, false);
+      onGraphParsed(vertices, edges, {}, content);
     } else {
       const { vertices, edges, sentenceMapping } = parseSentenceGraph(content);
-      onGraphParsed(vertices, edges, sentenceMapping, content, true);
+      onGraphParsed(vertices, edges, sentenceMapping, content);
     }
   };
 

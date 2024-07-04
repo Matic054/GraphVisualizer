@@ -1,11 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 
-const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, istext, updateEdges, updateVertices, updateAllEdges, isnew, updateNew }) => {
+const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, updateEdges, updateVertices, updateAllEdges, isnew, updateNew }) => {
   const [vertices, setVertices] = useState(initialVertices);
   const [edges, setEdges] = useState(initialEdges);
   const [sentenceMapping, setSentenceMapping] = useState(initialMapping);
-  const [isText, setIsText] = useState(istext);
   const firstEdges = useRef(initialEdges);
   const [isNew, setIsNew] = useState(isnew);
 
@@ -40,7 +39,6 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, istext
     setSentenceMapping(initialMapping);
     //setFirstEdges(initialEdges);
     setIsNew(isnew);
-    setIsText(istext);
 
     const handleResize = () => {
       setDimensions({
@@ -51,7 +49,7 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, istext
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [initialVertices, initialEdges, initialMapping, istext, isnew]);
+  }, [initialVertices, initialEdges, initialMapping, isnew]);
 
   useEffect(() => {
     if (!vertices.length) {
@@ -680,12 +678,8 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, istext
           <button onClick={addNode}>Add Node</button>
         </div>
         <div>
-          <button onClick={downloadGraph}>Download Graph</button>
-        </div>
-        {(isText || true) && ( 
-        <div>
           <label>
-            Text parameter:
+            Connectivity parameter:
             <input
               type="number"
               value={textPar}
@@ -694,7 +688,9 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, istext
             />
           </label>
         </div>
-        )}
+        <div>
+          <button onClick={downloadGraph}>Download Graph</button>
+        </div>
       </div>
     </div>
   );
