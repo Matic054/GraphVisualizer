@@ -300,26 +300,37 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, istext
         }
       }
     }
+
+    isAnimatingRef.current = true;
   
     bfsTraversal.forEach((node, index) => {
-      setTimeout(() => {
-        d3.selectAll('circle').filter(d => d.id === node).attr('fill', 'red');
-      }, index * 1000);
+      const timeoutId = setTimeout(() => {
+        if (isAnimatingRef.current){
+          d3.selectAll('circle').filter(d => d.id === node).attr('fill', 'red');
+        }
+      }, index * speed);
+      timeoutsRef.current.push(timeoutId);
     });
   
     bfsEdges.forEach((edge, index) => {
-      setTimeout(() => {
-        d3.selectAll('line')
-          .filter(d => (d.source.id === edge.source.id && d.target.id === edge.target.id) ||
-          (d.source.id === edge.target.id && d.target.id === edge.source.id))
-          .attr('stroke', 'red');
-      }, index * 1000); // Offset to ensure edges are colored after nodes
+      const timeoutId = setTimeout(() => {
+        if (isAnimatingRef.current){
+          d3.selectAll('line')
+            .filter(d => (d.source.id === edge.source.id && d.target.id === edge.target.id) ||
+            (d.source.id === edge.target.id && d.target.id === edge.source.id))
+            .attr('stroke', 'red');
+        }
+      }, index * speed); 
+      timeoutsRef.current.push(timeoutId);
     });
   
-    setTimeout(() => {
-      d3.selectAll('circle').attr('fill', '#69b3a2');
-      d3.selectAll('line').attr('stroke', '#999');
-    }, bfsTraversal.length * 1000 + 1000);
+    const finalTimeoutId = setTimeout(() => {
+      if (isAnimatingRef.current){
+        d3.selectAll('circle').attr('fill', '#69b3a2');
+        d3.selectAll('line').attr('stroke', '#999');
+      }
+    }, bfsTraversal.length * speed + 1000);
+    timeoutsRef.current.push(finalTimeoutId);
   };  
 
   const visualizeMST = (vertices, edges) => {
@@ -366,22 +377,30 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, istext
         mstEdges.push(edge);
       }
     });
+
+    isAnimatingRef.current = true;
   
     mstEdges.forEach((edge, index) => {
-      setTimeout(() => {
-        d3.selectAll('line')
-          .filter(d => 
-            (d.source.id === edge.source.id && d.target.id === edge.target.id) ||
-            (d.source.id === edge.target.id && d.target.id === edge.source.id)
-          )
-          .attr('stroke', 'red');
-      }, index * 1000);
+      const timeoutId = setTimeout(() => {
+        if (isAnimatingRef.current){
+          d3.selectAll('line')
+            .filter(d => 
+              (d.source.id === edge.source.id && d.target.id === edge.target.id) ||
+              (d.source.id === edge.target.id && d.target.id === edge.source.id)
+            )
+            .attr('stroke', 'red');
+        }
+      }, index * speed);
+      timeoutsRef.current.push(timeoutId);
     });
   
-    setTimeout(() => {
-      d3.selectAll('circle').attr('fill', '#69b3a2');
-      d3.selectAll('line').attr('stroke', '#999');
-    }, mstEdges.length * 1000 + 1000);
+    const finalTimeoutId = setTimeout(() => {
+      if (isAnimatingRef.current){
+        d3.selectAll('circle').attr('fill', '#69b3a2');
+        d3.selectAll('line').attr('stroke', '#999');
+      }
+    }, mstEdges.length * speed + 1000);
+    timeoutsRef.current.push(finalTimeoutId);
   };
 
   const visualizeDijkstra = (startNode) => {
@@ -431,22 +450,30 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, istext
         node = prev[node].node;
       }
     });
+
+    isAnimatingRef.current = true;
   
     pathEdges.forEach((edge, index) => {
-      setTimeout(() => {
-        d3.selectAll('line')
-          .filter(d => 
-            (d.source.id === edge.source.id && d.target.id === edge.target.id) ||
-            (d.source.id === edge.target.id && d.target.id === edge.source.id)
-          )
-          .attr('stroke', 'red');
-      }, index * 1000);
+      const timeoutId = setTimeout(() => {
+        if (isAnimatingRef.current){
+          d3.selectAll('line')
+            .filter(d => 
+              (d.source.id === edge.source.id && d.target.id === edge.target.id) ||
+              (d.source.id === edge.target.id && d.target.id === edge.source.id)
+            )
+            .attr('stroke', 'red');
+        }
+      }, index * speed);
+      timeoutsRef.current.push(timeoutId);
     });
 
-    setTimeout(() => {
-      d3.selectAll('circle').attr('fill', '#69b3a2');
-      d3.selectAll('line').attr('stroke', '#999');
-    }, pathEdges.length * 1000 + 1000);
+    const finalTimeoutId = setTimeout(() => {
+      if (isAnimatingRef.current){
+        d3.selectAll('circle').attr('fill', '#69b3a2');
+        d3.selectAll('line').attr('stroke', '#999');
+      }
+    }, pathEdges.length * speed + 1000);
+    timeoutsRef.current.push(finalTimeoutId);
   };  
 
   const downloadGraph = () => {
@@ -483,15 +510,11 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, istext
 
   const stopAnimation = () => {
     isAnimatingRef.current = false;
-    clearAllTimeouts();
-  };
-
-  const clearAllTimeouts = () => {
     timeoutsRef.current.forEach(timeoutId => clearTimeout(timeoutId));
     timeoutsRef.current = [];
     d3.selectAll('circle').attr('fill', '#69b3a2');
     d3.selectAll('line').attr('stroke', '#999');
-  };  
+  };
   
   
   return (
