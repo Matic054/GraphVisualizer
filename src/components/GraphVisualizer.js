@@ -28,6 +28,11 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, istext
   const svgRef = useRef();
   const simulationRef = useRef();
 
+  const [speed, setSpeed] = useState(1000);
+  const isAnimatingRef = useRef(false);
+
+  const timeoutsRef = useRef([]);
+
   useEffect(() => {
     setVertices(initialVertices);
     setEdges(initialEdges);
@@ -243,25 +248,36 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, istext
   
     dfs(startNode);
   
+    isAnimatingRef.current = true;
+  
     dfsTraversal.forEach((node, index) => {
-      setTimeout(() => {
-        d3.selectAll('circle').filter(d => d.id === node).attr('fill', 'red');
-      }, index * 1000);
+      const timeoutId = setTimeout(() => {
+        if (isAnimatingRef.current) {
+          d3.selectAll('circle').filter(d => d.id === node).attr('fill', 'red');
+        }
+      }, index * speed);
+      timeoutsRef.current.push(timeoutId);
     });
   
     dfsEdges.forEach((edge, index) => {
-      setTimeout(() => {
-        d3.selectAll('line')
-          .filter(d => (d.source.id === edge.source.id && d.target.id === edge.target.id) ||
-          (d.source.id === edge.target.id && d.target.id === edge.source.id))
-          .attr('stroke', 'red');
-      }, index * 1000 + 300); // Offset to ensure edges are colored after nodes
+      const timeoutId = setTimeout(() => {
+        if (isAnimatingRef.current) {
+          d3.selectAll('line')
+            .filter(d => (d.source.id === edge.source.id && d.target.id === edge.target.id) ||
+              (d.source.id === edge.target.id && d.target.id === edge.source.id))
+            .attr('stroke', 'red');
+        }
+      }, index * speed + 300); // Offset to ensure edges are colored after nodes
+      timeoutsRef.current.push(timeoutId);
     });
   
-    setTimeout(() => {
-      d3.selectAll('circle').attr('fill', '#69b3a2');
-      d3.selectAll('line').attr('stroke', '#999');
-    }, dfsTraversal.length * 1000 + 1000);
+    const finalTimeoutId = setTimeout(() => {
+      if (isAnimatingRef.current) {
+        d3.selectAll('circle').attr('fill', '#69b3a2');
+        d3.selectAll('line').attr('stroke', '#999');
+      }
+    }, dfsTraversal.length * speed + 1000);
+    timeoutsRef.current.push(finalTimeoutId);
   };  
 
   const visualizeBFS = (startNode) => {
@@ -464,6 +480,19 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, istext
     const newEdges = firstEdges.filter(edge => (edge.weight >= par));
     setEdges(newEdges);
   } 
+
+  const stopAnimation = () => {
+    isAnimatingRef.current = false;
+    clearAllTimeouts();
+  };
+
+  const clearAllTimeouts = () => {
+    timeoutsRef.current.forEach(timeoutId => clearTimeout(timeoutId));
+    timeoutsRef.current = [];
+    d3.selectAll('circle').attr('fill', '#69b3a2');
+    d3.selectAll('line').attr('stroke', '#999');
+  };  
+  
   
   return (
     <div className="graph-visualizer">
@@ -508,6 +537,23 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, istext
                 </div>
               )}
             </div>
+          )}
+        </div>
+        <div>
+          <label>
+            Animation speed: {speed}
+            <input
+              type="range"
+              min="100"
+              max="2000"
+              value={speed}
+              onChange={e => setSpeed(parseFloat(e.target.value))}
+            />
+          </label>
+        </div>
+        <div>
+          {isAnimatingRef && (
+            <button onClick={stopAnimation}>Stop Animation</button>
           )}
         </div>
         <div>
