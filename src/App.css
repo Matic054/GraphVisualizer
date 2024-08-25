@@ -56,6 +56,10 @@ h1 {
     font-weight: bold;
 }
 
+.non-zero {
+  color: red;
+}
+
 .container {
   display: flex;
   flex-direction: column;

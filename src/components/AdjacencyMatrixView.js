@@ -27,6 +27,7 @@ const AdjacencyMatrixView = ({ vertices, edges, updateEdges }) => {
                 <td
                   key={`${i}-${j}`}
                   onClick={() => handleCellClick(i, j)}
+                  className={cell !== 0 ? 'non-zero' : ''}
                   style={{ cursor: 'pointer' }}
                 >
                   {cell}
