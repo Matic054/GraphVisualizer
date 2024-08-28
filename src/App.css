@@ -177,7 +177,7 @@ h1 {
   background-color: #ffffff;
 }
 
-.graph-visualizer div:not(.graph-visualizer-row) {
+.graph-visualizer div:not(.graph-visualizer-col) {
   border: 1px solid black;
   margin: 5px;
   padding: 10px;
@@ -229,8 +229,10 @@ h1 {
   width: 76%;
 }
 
-.graph-visualizer-row {
+.graph-visualizer-col {
   width:25%;
+  height: 67vh;
+  overflow-y:scroll;
 }
 
 

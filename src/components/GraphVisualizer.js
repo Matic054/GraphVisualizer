@@ -524,7 +524,7 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, update
   return (
     <div className="graph-visualizer">
       <svg ref={svgRef} width={dimensions.width/2} height={dimensions.height/1.5}></svg>
-      <div className="graph-visualizer-row">
+      <div className="graph-visualizer-col">
         <div>
           <label>
             Select Algorithm:
