@@ -163,7 +163,19 @@ const GraphVisualizer = ({ initialVertices, initialEdges, initialMapping, update
   }, [vertices, edges, sentenceMapping, linkDistance, chargeStrength, dimensions]);
 
   const addNode = () => {
-    const newNodeId = `v${vertices.length + 1}`;
+    let newId = vertices.length+1;
+
+    const ids = vertices.map(vertex => parseInt(vertex.id.substring(1)));
+    ids.sort((a, b) => a - b);
+
+    for (let i = 0; i < ids.length; i++) {
+      if (ids[i] !== i + 1) {
+        newId = i + 1;
+        break;
+      }
+    }
+
+    const newNodeId = `v${newId}`;
     const newVertices = [...vertices, { id: newNodeId }];
     setVertices(newVertices);
     updateVertices(newNodeId);
